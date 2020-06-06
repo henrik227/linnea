@@ -198,14 +198,8 @@ class DerivationGraphBase(base.GraphBase):
             # TR_kernels_constructive does it already.
             return
         else:
-            # yield_from can't be used in this case, because we need to know if a reduction was yielded
-            reduction_yielded = False
-            for reduction in reductions.apply_reductions(equations, eqn_idx, (1,)):
-                reduction_yielded = True
-                yield reduction
-            if not reduction_yielded:
-                # only use unary kernels if nothing else can be done
-                yield from reductions.apply_unary_kernels(equations, eqn_idx, (1,))
+            yield from reductions.apply_reductions(equations, eqn_idx, (1,))
+            yield from reductions.apply_unary_kernels(equations, eqn_idx, (1,))
 
 
     def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_DS_step=None):
