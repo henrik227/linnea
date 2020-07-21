@@ -24,30 +24,33 @@ def apply_reductions(equations, eqn_idx, initial_pos):
 
     initial_node = equations[eqn_idx][initial_pos]
 
-    for node, _pos in initial_node.preorder_iter():
-        pos = initial_pos + _pos
+    for matcher in [collections_module.reduction_MA_large, collections_module.reduction_MA_small]:
+        # collections_module.reduction_MA
 
-        for grouped_kernels in collections_module.reduction_MA.match(node).grouped():
+        for node, _pos in initial_node.preorder_iter():
+            pos = initial_pos + _pos
 
-            kernel, substitution = select_optimal_match(grouped_kernels)
-            
-            matched_kernel = kernel.set_match(substitution, True)
-            if is_blocked(matched_kernel.operation.rhs):
-                continue
+            for grouped_kernels in matcher.match(node).grouped():
 
-            evaled_repl = matched_kernel.replacement
+                kernel, substitution = select_optimal_match(grouped_kernels)
+                
+                matched_kernel = kernel.set_match(substitution, True)
+                if is_blocked(matched_kernel.operation.rhs):
+                    continue
 
-            new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
+                evaled_repl = matched_kernel.replacement
 
-            equations_copy = equations.set(eqn_idx, new_equation)
-            equations_copy = equations_copy.to_normalform()
+                new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
 
-            temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-            # remove_identities has to be called after set_equivalent because
-            # after remove_identities, eqn_idx may not be correct anymore
-            equations_copy = equations_copy.remove_identities()
+                equations_copy = equations.set(eqn_idx, new_equation)
+                equations_copy = equations_copy.to_normalform()
 
-            yield (equations_copy, (matched_kernel,))
+                temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
+                # remove_identities has to be called after set_equivalent because
+                # after remove_identities, eqn_idx may not be correct anymore
+                equations_copy = equations_copy.remove_identities()
+
+                yield (equations_copy, (matched_kernel,))
 
 
 def apply_matrix_chain_algorithm(equations, eqn_idx, initial_pos, explicit_inversion=False):

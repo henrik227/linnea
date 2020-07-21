@@ -217,4 +217,18 @@ for kernel in addition_kernels:
 reduction_MA = matchpy.ManyToOneMatcher()
 for kernel in reductions:
     reduction_MA.add(kernel.pattern_with_context, label=kernel)
-    
+
+def count_variables(expr):
+    n = 0
+    for e, p in expr.preorder_iter():
+        if isinstance(e, matchpy.Wildcard):
+            n += 1
+    return n
+
+reduction_MA_small = matchpy.ManyToOneMatcher()
+reduction_MA_large = matchpy.ManyToOneMatcher()
+for kernel in reductions:
+    if count_variables(kernel.pattern.expression) >= 3:
+        reduction_MA_large.add(kernel.pattern_with_context, label=kernel)
+    else:
+        reduction_MA_small.add(kernel.pattern_with_context, label=kernel)
